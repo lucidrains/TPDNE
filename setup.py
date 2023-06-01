@@ -11,7 +11,11 @@ setup(
   long_description_content_type = 'text/markdown',
   url = 'https://github.com/lucidrains/TPDNE',
   keywords = [],
-  install_requires=[],
+  install_requires = [
+    'beartype',
+    'numpy',
+    'pillow'
+  ],
   classifiers=[
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
