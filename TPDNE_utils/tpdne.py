@@ -19,7 +19,7 @@ def sample_image_and_save_repeatedly(
     call_every_ms: int = 250,              # how often to sample
     tmp_dir: str = '/tmp',                 # to store temporary images, before symbolically linking to the output path
     num_rotated_tmp_images: int = 10,
-    image_format: str = 'webp',
+    image_format: str = 'jpeg',
     verbose: bool = True,
     quality = 99,
     resize_image_to: Optional[int] = None,
@@ -28,7 +28,7 @@ def sample_image_and_save_repeatedly(
 ):
     assert 0 < quality <= 100
     assert favicon_size in {16, 32}
-    assert image_format in {'webp', 'png', 'jpeg'}
+    assert image_format in {'jpeg', 'png', 'webp'}
 
     tmp_dir = Path(tmp_dir)
     output_path = Path(output_path)
@@ -55,7 +55,22 @@ def sample_image_and_save_repeatedly(
         if exists(resize_image_to):
             pil_image = pil_image.resize((resize_image_to, resize_image_to))
 
-        pil_image.save(tmp_path, format = image_format, quality = quality)
+        # depending on image format, pass in different kwargs on pillow image save
+
+        image_save_kwargs = dict()
+
+        if image_format == 'jpeg':
+            image_save_kwargs = dict(optimize = True, progressive = True)
+        elif image_format == 'webp':
+            image_save_kwargs = dict(format = 'webp')
+
+        # save image to tmp path
+
+        pil_image.save(tmp_path, quality = quality, **image_save_kwargs)
+
+        # symbolically link to the live output path
+        # if one tries to serve directly from the tmp path, client can receive incomplete images
+
         os.system(f'ln -nfs {tmp_path} {output_path}')
 
         if generate_favicon:
@@ -70,6 +85,8 @@ def sample_image_and_save_repeatedly(
 
         if verbose:
             print(f'{elapsed:.3f}s - tmp image at {tmp_path}, output image at {output_path}')
+
+        # make sure images are generated at least after `call_every_ms` milliseconds
 
         if elapsed >= call_every_seconds:
             continue
