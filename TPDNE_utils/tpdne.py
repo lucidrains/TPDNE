@@ -8,8 +8,20 @@ from PIL import Image
 from beartype import beartype
 from beartype.typing import Callable, Optional
 
+# templating
+
+from jinja2 import Environment, FileSystemLoader
+
+current_dir = Path(__file__).parents[0]
+environment = Environment(loader = FileSystemLoader(str(current_dir)))
+nginx_template = environment.get_template('nginx.conf.tmpl')
+
+# helper functions
+
 def exists(val):
     return val is not None
+
+# main function
 
 @beartype
 def sample_image_and_save_repeatedly(
@@ -24,7 +36,12 @@ def sample_image_and_save_repeatedly(
     quality = 99,
     resize_image_to: Optional[int] = None,
     generate_favicon: bool = True,
-    favicon_size: int = 32
+    favicon_size: int = 32,
+    generate_nginx_conf: bool = True,
+    symbolic_link_nginx_conf: bool = True,
+    nginx_sites_available_path: str = '/etc/nginx/sites-available',
+    nginx_conf_filename = 'default',
+    domain_name = '_'
 ):
     assert 0 < quality <= 100
     assert favicon_size in {16, 32}
@@ -32,6 +49,7 @@ def sample_image_and_save_repeatedly(
 
     tmp_dir = Path(tmp_dir)
     output_path = Path(output_path)
+
     assert output_path.suffix == '', 'output path suffix will be automatically determined by `image_format` keyword arg'
 
     output_path = output_path.with_suffix(f'.{image_format}')
@@ -39,9 +57,36 @@ def sample_image_and_save_repeatedly(
     call_every_seconds = call_every_ms / 1000
 
     assert tmp_dir.is_dir()
-    output_path.parents[0].mkdir(parents = True, exist_ok = True)
+    root = output_path.parents[0]
+    root.mkdir(parents = True, exist_ok = True)
 
     tmp_image_index = 0
+
+    # linking nginx
+
+    if generate_nginx_conf:
+        nginx_sites_path = Path(nginx_sites_available_path)
+        nginx_sites_conf_path = nginx_sites_path / nginx_conf_filename
+
+        assert nginx_sites_path.is_dir()
+
+        nginx_conf_text = nginx_template.render(
+            root = str(root.resolve()),
+            index = output_path.name,
+            server_name = domain_name
+        )
+
+        tmp_conf_path = Path(tmp_dir / 'nginx.server.conf')
+        tmp_conf_path.write_text(nginx_conf_text)
+
+        print(f'nginx server conf generated at {str(tmp_conf_path)}')
+
+        if symbolic_link_nginx_conf:
+            os.system(f'ln -nfs {str(tmp_conf_path)} {nginx_sites_conf_path}')
+
+            print(f'nginx conf linked to {nginx_sites_conf_path}\nrun `systemctl reload nginx` for it to be in effect')
+
+    # invoke `fn` in a while loop
 
     while True:
         start = time()

@@ -27,7 +27,7 @@ from TPDNE_utils import sample_image_and_save_repeatedly
 
 def generate_image():
     import numpy as np
-    return np.random.randn(3, 1024, 1024)
+    return np.random.randn(1024, 1024, 3)
 
 # saves a new sampled image every 250ms as out/sampled.jpeg
 
@@ -41,7 +41,9 @@ sample_image_and_save_repeatedly(generate_image, 'out/sampled')
 
 ## Todo
 
-- [ ] take care of an nginx template that can be generated from a command-line
+- [x] take care of an nginx template
+- [ ] handle ssl in nginx
+- [ ] auto-handle various types of tensor outputs. auto-detect channel dimension and move it to last
 
 ## Citations
 
