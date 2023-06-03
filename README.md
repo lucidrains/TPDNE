@@ -29,12 +29,12 @@ def generate_image():
     import numpy as np
     return np.random.randn(3, 1024, 1024)
 
-# saves a new sampled image every 250ms as out/sampled.webp
+# saves a new sampled image every 250ms as out/sampled.jpeg
 
 sample_image_and_save_repeatedly(generate_image, 'out/sampled')
 
 # use pm2 (node process manager) to run this script
-# then use nginx to serve out/sampled.web
+# then use nginx to serve out/sampled.jpeg
 # optionally put behind cloudflare
 
 ```
