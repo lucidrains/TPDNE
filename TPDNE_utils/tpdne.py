@@ -43,7 +43,19 @@ def auto_handle_image_tensor(t):
     if t.shape[-1] == 1:
         t = repeat(t, 'h w 1 -> h w c', c = 3)
 
-    return t
+    # handle scale
+
+    if t.dtype == np.float:
+        has_negatives = np.any(t < 0)
+
+        if has_negatives:
+            t = t * 127.5 + 128
+        else:
+            t = t * 255
+
+        t = t.astype(np.uint8)
+
+    return t.clip(0, 255)
 
 # main function
 

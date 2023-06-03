@@ -43,7 +43,7 @@ sample_image_and_save_repeatedly(generate_image, 'out/sampled')
 
 - [x] take care of an nginx template
 - [x] auto-handle various types of tensor outputs. auto-detect channel dimension and move it to last
-- [ ] handle un-normalization of image tensors into 0-256 uint8 by autodetecting range
+- [x] handle un-normalization of image tensors into 0-255 uint8 by autodetecting range
 - [ ] handle ssl in nginx
 
 ## Citations
