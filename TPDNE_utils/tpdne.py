@@ -8,6 +8,8 @@ from PIL import Image
 from beartype import beartype
 from beartype.typing import Callable, Optional
 
+from einops import rearrange, repeat
+
 # templating
 
 from jinja2 import Environment, FileSystemLoader
@@ -20,6 +22,28 @@ nginx_template = environment.get_template('nginx.conf.tmpl')
 
 def exists(val):
     return val is not None
+
+# handle everything that was confusing to me when first encountering image tensors
+
+def auto_handle_image_tensor(t):
+    if t.ndim == 4:
+        # assume batch is first dimension and take first sample
+        t = t[0]
+
+    if t.ndim == 2:
+        # very rare case, but assume greyscale
+        t = rearrange(t, 'h w -> h w 1')
+
+    if t.shape[0] <= 3:
+        # channel first
+        t = rearrange(t, 'c h w -> h w c')
+
+    assert t.shape[-1] <= 3, 'image tensor must be returned in the shape (height, width, channels), where channels is either 3 or 1'
+
+    if t.shape[-1] == 1:
+        t = repeat(t, 'h w 1 -> h w c', c = 3)
+
+    return t
 
 # main function
 
@@ -91,6 +115,8 @@ def sample_image_and_save_repeatedly(
     while True:
         start = time()
         image_tensor = fn()
+
+        image_tensor = auto_handle_image_tensor(image_tensor)
 
         tmp_image_index = (tmp_image_index + 1) % num_rotated_tmp_images
         tmp_path = str(tmp_dir / f'{tmp_image_index}.{image_format}')

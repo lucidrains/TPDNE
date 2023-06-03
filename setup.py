@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'TPDNE-utils',
   packages = find_packages(exclude=[]),
-  version = '0.0.6',
+  version = '0.0.7',
   license='MIT',
   description = 'TPDNE',
   include_package_data = True,
@@ -14,6 +14,7 @@ setup(
   keywords = [],
   install_requires = [
     'beartype',
+    'einops>=0.6',
     'jinja2',
     'numpy',
     'pillow'
