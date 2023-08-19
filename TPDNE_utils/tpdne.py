@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 from time import time, sleep
 from pathlib import Path
@@ -14,9 +15,12 @@ from einops import rearrange, repeat
 
 from jinja2 import Environment, FileSystemLoader
 
-current_dir = Path(__file__).parents[0]
+script_path = Path(__file__)
+current_dir = script_path.parents[0]
 environment = Environment(loader = FileSystemLoader(str(current_dir)))
+
 nginx_template = environment.get_template('nginx.conf.tmpl')
+systemd_service_template = environment.get_template('tpdne.service.tmpl')
 
 # helper functions
 
@@ -77,6 +81,9 @@ def sample_image_and_save_repeatedly(
     symbolic_link_nginx_conf: bool = True,
     nginx_sites_available_path: str = '/etc/nginx/sites-available',
     nginx_conf_filename = 'default',
+    generate_systemd_service_conf: bool = False,
+    systemd_service_path: str = '/etc/systemd/system',
+    systemd_service_name = 'tpdne',
     domain_name = '_'
 ):
     assert 0 < quality <= 100
@@ -121,6 +128,28 @@ def sample_image_and_save_repeatedly(
             os.system(f'ln -nfs {str(tmp_conf_path)} {nginx_sites_conf_path}')
 
             print(f'nginx conf linked to {nginx_sites_conf_path}\nrun `systemctl reload nginx` for it to be in effect')
+
+    if generate_systemd_service_conf:
+        systemd_service_path = Path(systemd_service_path)
+        systemd_service_conf_path = systemd_service_path / f'{systemd_service_name}.service'
+
+        assert systemd_service_path.is_dir()
+
+        systemd_conf_text = systemd_service_template.render(
+            working_directory = str(current_dir.resolve()),
+            python_executable = sys.executable,
+            script_path = str(script_path.resolve())
+        )
+
+        tmp_service_path = Path(tmp_dir / 'tpdne.services')
+        tmp_service_path.write_text(systemd_conf_text)
+
+        os.system(f'ln -nfs {str(tmp_service_path)} {str(systemd_service_conf_path)}')
+
+        print(f'service {systemd_service_name}.service created at {str(systemd_service_conf_path)}')
+        print(f'run `systemctl enable {systemd_service_name}.service` to start this script')
+        print(f'then run `systemctl status {systemd_service_name}.service` to see the status')
+        exit()
 
     # invoke `fn` in a while loop
 

@@ -33,10 +33,8 @@ def generate_image():
 
 sample_image_and_save_repeatedly(generate_image, 'out/sampled')
 
-# use pm2 (node process manager) to run this script
-# then use nginx to serve out/sampled.jpeg
+# use nginx to serve out/sampled.jpeg
 # optionally put behind cloudflare
-
 ```
 
 ## Todo
