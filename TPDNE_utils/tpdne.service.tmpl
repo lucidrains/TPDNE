@@ -10,6 +10,8 @@ Type=simple
 User=root
 Group=root
 
+Environment=LAUNCHED_FROM_SYSTEMD=1
+
 # configure location
 WorkingDirectory={{ working_directory }}
 ExecStart={{ python_executable }} {{ script_path }}

@@ -129,7 +129,8 @@ def sample_image_and_save_repeatedly(
 
             print(f'nginx conf linked to {nginx_sites_conf_path}\nrun `systemctl reload nginx` for it to be in effect')
 
-    if generate_systemd_service_conf:
+    if generate_systemd_service_conf and not exists(os.getenv('LAUNCHED_FROM_SYSTEMD', None)):
+
         systemd_service_path = Path(systemd_service_path)
         systemd_service_conf_path = systemd_service_path / f'{systemd_service_name}.service'
 
