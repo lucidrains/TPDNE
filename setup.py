@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
   name = 'TPDNE-utils',
   packages = find_packages(exclude=[]),
-  version = '0.0.10',
+  version = '0.0.11',
   license='MIT',
   description = 'TPDNE',
   include_package_data = True,
@@ -11,7 +11,9 @@ setup(
   author_email = 'lucidrains@gmail.com',
   long_description_content_type = 'text/markdown',
   url = 'https://github.com/lucidrains/TPDNE',
-  keywords = [],
+  keywords = [
+    'thispersondoesnotexist'
+  ],
   install_requires = [
     'beartype',
     'einops>=0.6',
